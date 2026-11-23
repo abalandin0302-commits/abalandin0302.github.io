@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>КАРКАСКИН — деревянные конструкции на МЗП | Проектирование и производство</title>
+<meta name="description" content="ООО КАРКАСКИН (Санкт-Петербург) — проектирование и производство деревянных конструкций на металлозубчатых пластинах (МЗП): стропильные фермы, балки перекрытий, арки, рамы, домокомплекты. Интерактивный 3D-конструктор дома по вашим габаритам.">
+<meta name="theme-color" content="#1F1B16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Three.js as ES module via CDN -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+/* ===================== RESET & BASE ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --wood:#8B5A2B;
+  --wood-dark:#6B4220;
+  --wood-light:#A0723D;
+  --brass:#C9A227;
+  --brass-light:#E0B84A;
+  --graphite:#1F1B16;
+  --graphite-2:#2A2520;
+  --graphite-3:#3A332B;
+  --parchment:#FAF7F2;
+  --parchment-2:#F1ECE3;
+  --line:#E2D9C9;
+  --nature:#4A6741;
+  --nature-light:#6B8A60;
+  --danger:#B23A2E;
+  --text:#2A2520;
+  --text-mute:#6B6258;
+  --shadow-sm:0 2px 8px rgba(31,27,22,.08);
+  --shadow:0 8px 28px rgba(31,27,22,.12);
+  --shadow-lg:0 18px 50px rgba(31,27,22,.18);
+  --radius:14px;
+  --radius-lg:22px;
+  --container:1240px;
+  --header-h:72px;
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:var(--text);
+  background:var(--parchment);
+  line-height:1.6;
+  font-size:16px;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Oswald',sans-serif;font-weight:600;line-height:1.12;letter-spacing:.01em}
+h1{font-size:clamp(2.2rem,5.5vw,4rem)}
+h2{font-size:clamp(1.8rem,3.6vw,2.8rem)}
+h3{font-size:clamp(1.25rem,2vw,1.6rem)}
+p{margin:0 0 1em}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:1rem}
+ul{list-style:none}
+section{scroll-margin-top:var(--header-h)}
+.container{width:100%;max-width:var(--container);margin:0 auto;padding:0 clamp(16px,4vw,32px)}
+
+/* ===================== BUTTONS ===================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55em;
+  padding:.85em 1.6em;border-radius:999px;font-weight:700;font-size:.98rem;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease,color .15s ease;
+  text-align:center;line-height:1;white-space:nowrap;
+}
+.btn-primary{background:var(--brass);color:var(--graphite);box-shadow:0 6px 18px rgba(201,162,39,.32)}
+.btn-primary:hover{background:var(--brass-light);transform:translateY(-2px);box-shadow:0 10px 24px rgba(201,162,39,.42)}
+.btn-dark{background:var(--graphite);color:var(--parchment)}
+.btn-dark:hover{background:var(--graphite-2);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--graphite);border:1.5px solid var(--graphite)}
+.btn-outline:hover{background:var(--graphite);color:var(--parchment)}
+.btn-light{background:var(--parchment);color:var(--graphite)}
+.btn-light:hover{background:#fff;transform:translateY(-2px)}
+.btn-block{width:100%}
+.link-arrow{display:inline-flex;align-items:center;gap:.4em;font-weight:700;color:var(--wood);font-size:.95rem}
+.link-arrow::after{content:"→";transition:transform .2s ease}
+.link-arrow:hover::after{transform:translateX(4px)}
+
+/* ===================== HEADER ===================== */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(31,27,22,.92);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(201,162,39,.18);
+  transition:background .25s ease;
+}
+.header.scrolled{background:rgba(31,27,22,.97)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;height:var(--header-h);gap:1rem}
+.logo{display:flex;align-items:center;gap:.6rem;color:var(--parchment);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.04em;font-size:1.25rem}
+.logo-mark{
+  width:38px;height:38px;flex:0 0 38px;border-radius:9px;
+  background:linear-gradient(135deg,var(--brass),var(--wood));
+  display:grid;place-items:center;color:var(--graphite);font-size:1.1rem;
+  box-shadow:0 4px 10px rgba(201,162,39,.35);
+}
+.logo-mark svg{width:22px;height:22px}
+.logo small{display:block;font-size:.62rem;font-weight:400;letter-spacing:.18em;color:var(--brass);text-transform:uppercase;font-family:'Manrope',sans-serif}
+.nav{display:flex;align-items:center;gap:.1rem;flex-wrap:nowrap}
+.nav a{
+  color:var(--parchment);padding:.55rem .65rem;border-radius:8px;font-size:.9rem;font-weight:500;
+  transition:background .15s,color .15s;position:relative;white-space:nowrap;
+}
+.nav a:hover{background:rgba(201,162,39,.16);color:var(--brass-light)}
+.nav-cta{margin-left:.4rem}
+.nav-cta .btn{padding:.6em 1.15em;font-size:.88rem;white-space:nowrap}
+.nav a.active{color:var(--brass-light)}
+.burger{display:none;flex-direction:column;gap:5px;width:42px;height:42px;align-items:center;justify-content:center;border-radius:8px;background:transparent}
+.burger span{width:24px;height:2px;background:var(--parchment);border-radius:2px;transition:transform .25s,opacity .25s}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+.phone-top{color:var(--parchment);font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
+.phone-top:hover{color:var(--brass-light)}
+.phone-top svg{width:16px;height:16px;color:var(--brass)}
+
+/* mobile nav drawer */
+.mobile-nav{
+  position:fixed;top:var(--header-h);left:0;right:0;z-index:99;
+  background:var(--graphite);padding:0 0 16px;
+  max-height:0;overflow:hidden;transition:max-height .3s ease;
+  border-bottom:1px solid rgba(201,162,39,.18);
+}
+.mobile-nav.open{max-height:80vh;overflow-y:auto}
+.mobile-nav a{display:block;color:var(--parchment);padding:.85rem 1.2rem;font-weight:500;border-bottom:1px solid rgba(255,255,255,.06)}
+.mobile-nav a:hover{background:rgba(201,162,39,.12);color:var(--brass-light)}
+.mobile-nav .btn{margin:1rem 1.2rem 0}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;
+  background:radial-gradient(ellipse at 70% 30%,#2A2520 0%,#1F1B16 55%,#15110D 100%);
+  color:var(--parchment);overflow:hidden;padding:calc(var(--header-h) + 40px) 0 40px;
+}
+.hero::before{
+  content:"";position:absolute;inset:0;opacity:.06;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 38px,rgba(201,162,39,.5) 38px 39px),
+    repeating-linear-gradient(0deg,transparent 0 38px,rgba(201,162,39,.4) 38px 39px);
+}
+.hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,56px);align-items:center;width:100%}
+.hero-copy{max-width:620px}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:.5em;padding:.45em 1em;border-radius:999px;
+  background:rgba(201,162,39,.14);border:1px solid rgba(201,162,39,.4);
+  color:var(--brass-light);font-size:.82rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.4rem;
+}
+.hero h1{color:#fff;margin-bottom:.6rem}
+.hero h1 .accent{color:var(--brass)}
+.hero h1 .accent-2{color:rgba(250,247,242,.9);font-weight:400;font-family:'Manrope',sans-serif;font-size:.46em;display:block;margin-top:.5em;letter-spacing:0;font-style:normal}
+.hero-lead{font-size:clamp(1rem,1.5vw,1.18rem);color:rgba(250,247,242,.9);margin:1.2rem 0 1.8rem;max-width:560px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-bottom:2.2rem}
+.hero-stats{display:flex;gap:clamp(.9rem,2.5vw,2.2rem);flex-wrap:wrap}
+.hero-stat .num{font-family:'Oswald',sans-serif;font-size:clamp(1.6rem,2.6vw,2.4rem);color:var(--brass);font-weight:700;line-height:1}
+.hero-stat .lbl{font-size:.72rem;color:rgba(250,247,242,.85);text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;white-space:nowrap;line-height:1.15}
+
+/* 3D viewer card on hero */
+.hero-3d{
+  position:relative;width:100%;aspect-ratio:1/1;max-width:560px;margin-left:auto;
+  border-radius:var(--radius-lg);overflow:hidden;
+  background:linear-gradient(160deg,rgba(201,162,39,.08),rgba(31,27,22,.4));
+  border:1px solid rgba(201,162,39,.25);
+  box-shadow:0 30px 70px rgba(0,0,0,.5);
+}
+#hero-canvas{width:100%;height:100%;display:block;touch-action:none}
+.hero-3d-badge{
+  position:absolute;top:14px;left:14px;z-index:3;
+  display:inline-flex;align-items:center;gap:.5em;padding:.4em .8em;border-radius:999px;
+  background:rgba(15,12,9,.7);backdrop-filter:blur(6px);
+  border:1px solid rgba(201,162,39,.4);color:var(--brass-light);
+  font-size:.74rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+}
+.hero-3d-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);box-shadow:0 0 8px var(--brass);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-3d-hint{
+  position:absolute;bottom:14px;right:14px;z-index:3;
+  font-size:.74rem;color:rgba(250,247,242,.95);background:rgba(15,12,9,.75);
+  padding:.45em .9em;border-radius:8px;backdrop-filter:blur(8px);border:1px solid rgba(201,162,39,.25);
+}
+
+.scroll-cue{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:3;
+  color:rgba(250,247,242,.85);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+}
+.scroll-cue .line{width:1px;height:34px;background:linear-gradient(var(--brass),transparent);animation:scrollline 2s ease-in-out infinite}
+@keyframes scrollline{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.01%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ===================== SECTIONS GENERIC ===================== */
+.section{padding:clamp(56px,8vw,110px) 0}
+.section-dark{background:var(--graphite);color:var(--parchment)}
+.section-wood{background:linear-gradient(180deg,var(--parchment-2),var(--parchment))}
+.section-head{max-width:760px;margin:0 auto clamp(36px,5vw,56px);text-align:center}
+.section-head.left{text-align:left;margin-left:0}
+.section-head .lead{margin-left:auto;margin-right:auto}
+.eyebrow{
+  display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:.9rem;position:relative;padding-left:34px;
+}
+.eyebrow::before{content:"";position:absolute;left:0;top:50%;width:24px;height:2px;background:var(--brass);transform:translateY(-50%)}
+.section-dark .eyebrow{color:var(--brass-light)}
+.lead{font-size:clamp(1rem,1.4vw,1.1rem);color:var(--text-mute);max-width:60ch}
+.section-dark .lead{color:rgba(250,247,242,.7)}
+
+/* ===================== FEATURES / ADVANTAGES ===================== */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.4rem}
+.feature-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.8rem 1.6rem;transition:transform .2s,box-shadow .2s,border-color .2s;position:relative;overflow:hidden;
+}
+.feature-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--brass),var(--wood));transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+.feature-card:hover::before{transform:scaleX(1)}
+.feature-ic{
+  width:52px;height:52px;border-radius:12px;display:grid;place-items:center;margin-bottom:1.1rem;
+  background:linear-gradient(135deg,rgba(201,162,39,.16),rgba(139,90,43,.16));color:var(--wood);
+}
+.feature-ic svg{width:26px;height:26px}
+.feature-card h3{margin-bottom:.5rem;color:var(--graphite)}
+.feature-card p{color:var(--text-mute);font-size:.95rem;margin:0}
+
+/* ===================== CARDS GRID (services/products) ===================== */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;
+}
+.card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.card-media{height:180px;background:linear-gradient(135deg,var(--graphite-3),var(--graphite-2));position:relative;overflow:hidden;display:grid;place-items:center;color:var(--brass)}
+.card-media svg{width:74px;height:74px;opacity:.85}
+.card-media .pill{position:absolute;top:10px;left:10px;background:rgba(15,12,9,.7);color:var(--brass-light);font-size:.7rem;font-weight:700;padding:.3em .7em;border-radius:999px;letter-spacing:.05em;text-transform:uppercase}
+.card-body{padding:1.4rem 1.4rem 1.6rem;flex:1;display:flex;flex-direction:column}
+.card-body h3{margin-bottom:.5rem;color:var(--graphite)}
+.card-body p{color:var(--text-mute);font-size:.93rem;margin-bottom:1rem;flex:1}
+.card-tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--wood);margin-bottom:.6rem}
+
+/* ===================== PROCESS / STEPS ===================== */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.6rem;counter-reset:step}
+.step{position:relative;padding:2rem 1.4rem 1.6rem;border-radius:var(--radius);background:#fff;border:1px solid var(--line)}
+.step::before{
+  counter-increment:step;content:"0" counter(step);
+  font-family:'Oswald',sans-serif;font-size:2.4rem;font-weight:700;color:var(--brass);line-height:1;display:block;margin-bottom:.8rem;
+}
+.step h3{margin-bottom:.5rem}
+.step p{color:var(--text-mute);font-size:.93rem;margin:0}
+
+/* ===================== 3D BUILDER ===================== */
+.builder{background:linear-gradient(180deg,var(--graphite) 0%,#15110D 100%);color:var(--parchment)}
+.builder-grid{display:grid;grid-template-columns:380px 1fr;gap:clamp(20px,3vw,36px);align-items:stretch}
+.builder-panel{
+  background:rgba(255,255,255,.04);border:1px solid rgba(201,162,39,.22);border-radius:var(--radius-lg);
+  padding:1.6rem;backdrop-filter:blur(8px);
+}
+.builder-panel h3{color:var(--brass-light);margin-bottom:.3rem}
+.builder-panel .panel-sub{font-size:.86rem;color:rgba(250,247,242,.6);margin-bottom:1.4rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:.82rem;font-weight:600;color:rgba(250,247,242,.85);margin-bottom:.4rem;letter-spacing:.02em}
+.field label .hint{color:rgba(250,247,242,.45);font-weight:400;font-size:.76rem;margin-left:.4em}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.input,select,.textarea{
+  width:100%;background:rgba(15,12,9,.5);border:1px solid rgba(201,162,39,.25);
+  color:var(--parchment);padding:.65rem .8rem;border-radius:10px;font-size:.95rem;transition:border-color .15s,box-shadow .15s;
+}
+.input:focus,select:focus,.textarea:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(201,162,39,.18)}
+select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23C9A227' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right .8rem center;padding-right:2rem}
+select option{background:var(--graphite)}
+.roof-types{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.roof-chip{
+  display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;border:1px solid rgba(201,162,39,.25);
+  border-radius:10px;background:rgba(15,12,9,.4);cursor:pointer;font-size:.86rem;font-weight:500;color:rgba(250,247,242,.8);transition:all .15s;
+}
+.roof-chip svg{width:30px;height:22px;flex:0 0 30px;color:var(--brass)}
+.roof-chip:hover{border-color:var(--brass);color:#fff}
+.roof-chip.active{background:rgba(201,162,39,.18);border-color:var(--brass);color:#fff;box-shadow:0 0 0 2px rgba(201,162,39,.2)}
+.builder-actions{display:flex;gap:.6rem;margin-top:1.2rem;flex-wrap:wrap}
+.builder-actions .btn{flex:1;min-width:130px}
+.toggle-row{display:flex;align-items:center;gap:.6rem;font-size:.86rem;color:rgba(250,247,242,.8);margin:.6rem 0;cursor:pointer;user-select:none}
+.toggle-row input{appearance:none;width:34px;height:20px;background:rgba(15,12,9,.6);border:1px solid rgba(201,162,39,.3);border-radius:999px;position:relative;transition:background .2s;flex:0 0 34px}
+.toggle-row input::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--brass);transition:transform .2s}
+.toggle-row input:checked{background:rgba(201,162,39,.35)}
+.toggle-row input:checked::before{transform:translateX(14px)}
+
+.builder-view{
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  background:radial-gradient(ellipse at 50% 30%,#2A2520 0%,#15110D 80%);
+  border:1px solid rgba(201,162,39,.22);min-height:480px;display:flex;flex-direction:column;
+}
+#builder-canvas{width:100%;height:100%;display:block;flex:1;touch-action:none}
+.view-overlay{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 1.2rem;z-index:2}
+.view-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.view-info{background:rgba(15,12,9,.65);backdrop-filter:blur(8px);padding:.7rem 1rem;border-radius:12px;border:1px solid rgba(201,162,39,.25);font-size:.82rem}
+.view-info b{color:var(--brass-light);font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;display:block;margin-bottom:.15rem}
+.view-controls{display:flex;gap:.4rem;pointer-events:auto}
+.view-btn{
+  width:38px;height:38px;border-radius:10px;background:rgba(15,12,9,.7);border:1px solid rgba(201,162,39,.3);
+  color:var(--brass-light);display:grid;place-items:center;transition:all .15s;
+}
+.view-btn:hover{background:rgba(201,162,39,.2);color:#fff;transform:translateY(-1px)}
+.view-btn svg{width:18px;height:18px}
+.view-bottom{font-size:.74rem;color:rgba(250,247,242,.78);text-align:center;pointer-events:none}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.legend span{display:inline-flex;align-items:center;gap:.35em}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.builder-result{
+  margin-top:1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.7rem;
+}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid rgba(201,162,39,.2);border-radius:12px;padding:.85rem .9rem;text-align:center}
+.stat-box .v{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;color:var(--brass);line-height:1}
+.stat-box .l{font-size:.74rem;color:rgba(250,247,242,.82);text-transform:uppercase;letter-spacing:.05em;margin-top:.3rem}
+
+/* form field labels: keep on one line */
+.ff label{display:block;font-size:.82rem;font-weight:600;color:var(--graphite);margin-bottom:.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.builder-panel .field label{display:flex;align-items:baseline;gap:.4em;white-space:nowrap;font-size:.82rem;font-weight:600;color:rgba(250,247,242,.92);margin-bottom:.4rem;letter-spacing:.02em}
+.builder-panel .field label .hint{color:rgba(250,247,242,.55);font-weight:400;font-size:.74rem;white-space:nowrap}
+
+/* ===================== STATS BAR ===================== */
+.stats-bar{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff}
+.stats-bar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.5rem;text-align:center}
+.stats-bar .num{font-family:'Oswald',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1;color:#fff}
+.stats-bar .num .suf{color:var(--brass-light)}
+.stats-bar .lbl{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;opacity:.85;margin-top:.5rem}
+
+/* ===================== PORTFOLIO ===================== */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem}
+.gallery-item{
+  position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:4/3;
+  background:linear-gradient(135deg,var(--graphite-3),var(--graphite-2));display:grid;place-items:center;color:var(--brass);cursor:pointer;
+}
+.gallery-item svg{width:64px;height:64px;opacity:.7;transition:transform .3s}
+.gallery-item:hover svg{transform:scale(1.1)}
+.gallery-item .cap{position:absolute;bottom:0;left:0;right:0;padding:1rem;background:linear-gradient(transparent,rgba(15,12,9,.85));color:#fff;font-weight:600;font-size:.95rem}
+.gallery-item .cap small{display:block;font-weight:400;font-size:.76rem;color:var(--brass-light);margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.06em}
+
+/* ===================== CONTACT / FORMS ===================== */
+.contact-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,4vw,48px);align-items:start}
+.contact-info .ci-item{display:flex;gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--line)}
+.contact-info .ci-item:last-child{border-bottom:none}
+.ci-ic{width:46px;height:46px;flex:0 0 46px;border-radius:12px;background:linear-gradient(135deg,rgba(201,162,39,.16),rgba(139,90,43,.16));display:grid;place-items:center;color:var(--wood)}
+.ci-ic svg{width:22px;height:22px}
+.ci-item h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);font-weight:700;margin-bottom:.2rem;font-family:'Manrope',sans-serif}
+.ci-item .v{font-weight:600;color:var(--graphite);font-size:1.02rem}
+.ci-item .v a:hover{color:var(--wood)}
+/* contact info on dark sections: keep values readable */
+.section-dark .ci-item{border-bottom-color:rgba(201,162,39,.22)}
+.section-dark .ci-item h4{color:rgba(250,247,242,.62)}
+.section-dark .ci-item .v{color:var(--parchment)}
+.section-dark .ci-item .v a{color:var(--parchment)}
+.section-dark .ci-item .v a:hover{color:var(--brass-light)}
+.section-dark .ci-ic{background:rgba(201,162,39,.16);color:var(--brass-light)}
+.socials{display:flex;gap:.6rem;margin-top:1.4rem}
+.socials a{width:40px;height:40px;border-radius:10px;background:var(--graphite);color:var(--brass);display:grid;place-items:center;transition:all .2s}
+.socials a:hover{background:var(--brass);color:var(--graphite);transform:translateY(-2px)}
+.socials svg{width:20px;height:20px}
+
+.form-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);padding:clamp(1.4rem,3vw,2rem);box-shadow:var(--shadow)}
+.form-card h3{margin-bottom:.3rem;color:var(--graphite)}
+.form-card .form-sub{color:var(--text-mute);font-size:.92rem;margin-bottom:1.4rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.ff{margin-bottom:.9rem}
+.ff label{display:block;font-size:.82rem;font-weight:600;color:var(--graphite);margin-bottom:.35rem}
+.ff label .req{color:var(--danger)}
+.finput,select.finput,textarea.finput{
+  width:100%;background:var(--parchment-2);border:1px solid var(--line);border-radius:10px;
+  padding:.7rem .85rem;font-size:.95rem;color:var(--text);transition:border-color .15s,box-shadow .15s,background .15s;
+}
+.finput:focus,select.finput:focus,textarea.finput:focus{outline:none;border-color:var(--brass);background:#fff;box-shadow:0 0 0 3px rgba(201,162,39,.16)}
+textarea.finput{resize:vertical;min-height:110px}
+.form-note{font-size:.78rem;color:var(--text-mute);margin-top:.8rem}
+.form-note a{color:var(--wood);text-decoration:underline}
+.form-success{display:none;background:rgba(74,103,65,.12);border:1px solid var(--nature-light);color:var(--nature);padding:1rem;border-radius:10px;margin-top:1rem;font-weight:600}
+.form-success.show{display:block}
+
+/* ===================== TABS (for production categories) ===================== */
+.tabs{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:2rem}
+.tab{
+  padding:.7rem 1.3rem;border-radius:999px;background:#fff;border:1px solid var(--line);
+  font-weight:600;font-size:.92rem;color:var(--text-mute);transition:all .2s;
+}
+.tab:hover{border-color:var(--brass);color:var(--wood)}
+.tab.active{background:var(--graphite);color:var(--brass);border-color:var(--graphite)}
+.tab-panels{display:none}
+.tab-panels.active{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===================== CTA BANNER ===================== */
+.cta-banner{
+  background:linear-gradient(135deg,var(--wood),var(--wood-dark));
+  border-radius:var(--radius-lg);padding:clamp(2rem,5vw,3.5rem);color:#fff;
+  display:grid;grid-template-columns:1.4fr auto;gap:2rem;align-items:center;position:relative;overflow:hidden;
+}
+.cta-banner::before{content:"";position:absolute;right:-40px;top:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,162,39,.18)}
+.cta-banner h2{color:#fff;position:relative;z-index:1;margin-bottom:.5rem}
+.cta-banner p{color:rgba(255,255,255,.85);position:relative;z-index:1;margin:0}
+.cta-banner .cta-actions{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:flex-end;position:relative;z-index:1}
+
+/* ===================== FOOTER ===================== */
+.footer{background:#15110D;color:rgba(250,247,242,.7);padding:3rem 0 1.5rem}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:2rem;margin-bottom:2rem}
+.footer h4{color:var(--brass-light);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;font-family:'Manrope',sans-serif;font-weight:700}
+.footer a{display:block;padding:.3rem 0;color:rgba(250,247,242,.7);font-size:.92rem;transition:color .15s}
+.footer a:hover{color:var(--brass-light)}
+.footer .f-about p{font-size:.92rem;line-height:1.6;margin-bottom:1rem}
+.footer-bottom{border-top:1px solid rgba(201,162,39,.16);padding-top:1.5rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.82rem}
+.footer-bottom .links{display:flex;gap:1.2rem;flex-wrap:wrap}
+.footer-bottom a:hover{color:var(--brass-light)}
+
+/* ===================== PAGE (for sub-sections) ===================== */
+.page-hero{
+  background:radial-gradient(ellipse at 30% 30%,#2A2520 0%,#1F1B16 70%);
+  color:var(--parchment);padding:calc(var(--header-h) + 60px) 0 50px;text-align:center;
+}
+.page-hero h1{color:#fff;margin-bottom:.6rem}
+.page-hero .lead{color:rgba(250,247,242,.75);margin:0 auto}
+.breadcrumb{font-size:.82rem;color:rgba(250,247,242,.5);margin-bottom:1rem}
+.breadcrumb a:hover{color:var(--brass-light)}
+
+/* ===================== PRICE TABLE ===================== */
+.price-table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.price-table th,.price-table td{padding:1rem 1.2rem;text-align:left;border-bottom:1px solid var(--line)}
+.price-table th{background:var(--graphite);color:var(--brass-light);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;font-family:'Manrope',sans-serif}
+.price-table tr:last-child td{border-bottom:none}
+.price-table tr:hover td{background:var(--parchment-2)}
+.price-table .price{font-weight:700;color:var(--wood);white-space:nowrap}
+
+/* ===================== FAQ ===================== */
+.faq-item{background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:.8rem;overflow:hidden}
+.faq-q{padding:1.1rem 1.3rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;cursor:pointer;font-weight:600;color:var(--graphite);font-family:'Oswald',sans-serif;font-size:1.1rem}
+.faq-q .pm{width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:rgba(201,162,39,.16);color:var(--brass);display:grid;place-items:center;transition:transform .25s;font-size:1.4rem;line-height:1}
+.faq-item.open .faq-q .pm{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;color:var(--text-mute);font-size:.95rem}
+.faq-item.open .faq-a{max-height:400px}
+.faq-a-inner{padding:0 1.3rem 1.2rem}
+
+/* ===================== TOAST ===================== */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--graphite);color:var(--brass-light);padding:.85rem 1.4rem;border-radius:999px;font-weight:600;font-size:.92rem;box-shadow:var(--shadow-lg);z-index:200;opacity:0;transition:all .3s;border:1px solid rgba(201,162,39,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===================== PHOTO GALLERY (real photos) ===================== */
+.photogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.2rem}
+.photo-card{
+  position:relative;border-radius:var(--radius);overflow:hidden;display:block;background:#181410;
+  border:1px solid var(--line);transition:transform .2s,box-shadow .2s;
+}
+.photo-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.photo-card img{width:100%;height:225px;object-fit:cover;display:block;transition:transform .35s}
+.photo-card:hover img{transform:scale(1.04)}
+.photo-card .cap{
+  position:absolute;bottom:0;left:0;right:0;padding:.9rem 1rem;
+  background:linear-gradient(transparent,rgba(15,12,9,.88));color:#fff;font-weight:600;font-size:.9rem;line-height:1.3;
+}
+.photo-card .cap small{display:block;font-weight:400;font-size:.74rem;color:var(--brass-light);margin-bottom:.15rem;text-transform:uppercase;letter-spacing:.06em}
+.album-card{
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;display:block;min-height:300px;
+  background:#181410;border:1px solid var(--line);transition:transform .2s,box-shadow .2s;
+}
+.album-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.album-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.album-card:hover img{transform:scale(1.05)}
+.album-card .al-cap{
+  position:absolute;bottom:0;left:0;right:0;padding:1.3rem 1.4rem;z-index:2;
+  background:linear-gradient(transparent,rgba(15,12,9,.92));color:#fff;
+}
+.album-card .al-cap h3{color:#fff;margin-bottom:.2rem}
+.album-card .al-cap p{color:rgba(250,247,242,.85);font-size:.9rem;margin:0}
+.album-card .al-count{
+  position:absolute;top:14px;right:14px;z-index:2;background:rgba(15,12,9,.75);color:var(--brass-light);
+  border:1px solid rgba(201,162,39,.4);border-radius:999px;padding:.35em .9em;font-size:.78rem;font-weight:700;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media(max-width:1120px){
+  .nav,.nav-cta,.phone-top{display:none}
+  .burger{display:flex}
+}
+@media(max-width:1024px){
+  .builder-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:860px){
+  .hero-inner{grid-template-columns:1fr;text-align:center}
+  .hero-copy{margin:0 auto}
+  .hero-actions,.hero-stats{justify-content:center}
+  .hero-3d{max-width:480px;margin:0 auto}
+  .contact-grid{grid-template-columns:1fr}
+  .cta-banner{grid-template-columns:1fr;text-align:center}
+  .cta-banner .cta-actions{justify-content:center}
+}
+@media(max-width:560px){
+  .form-row{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .roof-types{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .hero-stats{gap:1rem}
+  .hero-stat .num{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="header" id="header">
+  <div class="container header-inner">
+    <a href="#home" class="logo" aria-label="КАРКАСКИН — на главную">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/><path d="M3 9h18"/></svg>
+      </span>
+      <span>КАРКАСКИН<small>деревянные конструкции</small></span>
+    </a>
+    <nav class="nav" aria-label="Главное меню">
+      <a href="#builder">3D-конструктор</a>
+      <a href="proizvodstvo.html">Производство</a>
+      <a href="komplekty.html">Комплекты</a>
+      <a href="uslugi.html">Услуги</a>
+      <a href="katalog.html">Каталог</a>
+      <a href="portfolio.html">Портфолио</a>
+      <a href="garantia.html">Гарантия</a>
+      <a href="kontakty.html">Контакты</a>
+      <span class="nav-cta"><a href="kontakty.html#calc" class="btn btn-primary">Рассчитать</a></span>
+    </nav>
+    <a href="tel:+79219153706" class="phone-top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      +7 921 915-37-06
+    </a>
+    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<div class="mobile-nav" id="mobileNav">
+  <a href="#builder">3D-конструктор дома</a>
+  <a href="proizvodstvo.html">Производство</a>
+  <a href="komplekty.html">Комплекты конструкций</a>
+  <a href="uslugi.html">Услуги</a>
+  <a href="katalog.html">Каталог проектов</a>
+  <a href="portfolio.html">Портфолио</a>
+  <a href="garantia.html">Гарантия</a>
+  <a href="kontakty.html">Контакты</a>
+  <a href="kontakty.html#calc" class="btn btn-primary btn-block">Запросить расчёт</a>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="home">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <span class="hero-eyebrow">с 2014 года · Санкт-Петербург</span>
+      <h1>Деревянные конструкции<br><span class="accent">на МЗП</span> — от расчёта<br>до монтажа<span class="accent-2">Проектируем, производим и монтируем фермы, балки, арки и домокомплекты</span></h1>
+      <p class="hero-lead">Стропильные фермы на металлозубчатых пластинах, балки перекрытий повышенной прочности, арочные и рамные конструкции. Пролёты до 24 м, срок службы более 50 лет.</p>
+      <div class="hero-actions">
+        <a href="#builder" class="btn btn-primary">3D-модель дома</a>
+        <a href="#calc" class="btn btn-light">Рассчитать</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">10+</div><div class="lbl">лет опыта</div></div>
+        <div class="hero-stat"><div class="num">24 м</div><div class="lbl">пролёт</div></div>
+        <div class="hero-stat"><div class="num">50+</div><div class="lbl">лет службы</div></div>
+        <div class="hero-stat"><div class="num">1000+</div><div class="lbl">проектов</div></div>
+      </div>
+    </div>
+    <div class="hero-3d">
+      <div class="hero-3d-badge"><span class="dot"></span>Пример фермы на МЗП</div>
+      <canvas id="hero-canvas"></canvas>
+      <div class="hero-3d-hint">Вращайте мышью · колесо — масштаб</div>
+    </div>
+  </div>
+  <div class="scroll-cue"><span>Листайте</span><span class="line"></span></div>
+</section>
+
+<!-- ===================== 3D BUILDER ===================== -->
+<section class="section builder" id="builder">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Интерактивный конструктор</span>
+      <h2>Постройте 3D-модель вашего дома</h2>
+      <p class="lead">Введите габариты здания — и на лету соберётся уникальная 3D-модель деревянного каркаса с фермами на МЗП. Это не готовый пример, как у других: модель генерируется под ваши размеры. Ферма из блока выше показана исключительно как образец конструкции.</p>
+    </div>
+
+    <div class="builder-grid">
+      <!-- LEFT: inputs -->
+      <div class="builder-panel">
+        <h3>Параметры здания</h3>
+        <p class="panel-sub">Размеры в миллиметрах. Модель обновляется автоматически.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="bL">Пролёт L <span class="hint">мм</span></label>
+            <input type="number" id="bL" class="input" value="8000" min="3000" max="24000" step="500">
+          </div>
+          <div class="field">
+            <label for="bA">Длина A <span class="hint">мм</span></label>
+            <input type="number" id="bA" class="input" value="10000" min="3000" max="30000" step="500">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="bH">Высота H <span class="hint">мм</span></label>
+            <input type="number" id="bH" class="input" value="2500" min="800" max="6000" step="100">
+          </div>
+          <div class="field">
+            <label for="bStep">Шаг B <span class="hint">мм</span></label>
+            <input type="number" id="bStep" class="input" value="1000" min="500" max="3000" step="50">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="bEave">Свес C <span class="hint">мм</span></label>
+            <input type="number" id="bEave" class="input" value="600" min="0" max="2000" step="50">
+          </div>
+          <div class="field">
+            <label for="bWallH">Стена <span class="hint">мм</span></label>
+            <input type="number" id="bWallH" class="input" value="3000" min="2000" max="6000" step="100">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Тип крыши</label>
+          <div class="roof-types" id="roofTypes">
+            <div class="roof-chip active" data-roof="gable">
+              <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 22 20 4 38 22"/></svg>Двухскатная
+            </div>
+            <div class="roof-chip" data-roof="hip">
+              <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 22 12 8 20 4 28 8 38 22"/></svg>Вальмовая
+            </div>
+            <div class="roof-chip" data-roof="shed">
+              <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 22 38 8"/></svg>Односкатная
+            </div>
+            <div class="roof-chip" data-roof="mansard">
+              <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 22 8 12 14 16 20 4 26 16 32 12 38 22"/></svg>Мансардная
+            </div>
+          </div>
+        </div>
+
+        <label class="toggle-row"><input type="checkbox" id="showWalls" checked> Показывать стены</label>
+        <label class="toggle-row"><input type="checkbox" id="showNodes" checked> Узлы МЗП (металлозубчатые пластины)</label>
+        <label class="toggle-row"><input type="checkbox" id="showGrid"> Сетка осей</label>
+
+        <div class="builder-actions">
+          <button class="btn btn-primary" id="btnReset">Сбросить</button>
+          <button class="btn btn-outline" id="btnRequest" style="border-color:var(--brass);color:var(--brass)">Запросить расчёт</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: 3D view -->
+      <div>
+        <div class="builder-view">
+          <canvas id="builder-canvas"></canvas>
+          <div class="view-overlay">
+            <div class="view-top">
+              <div class="view-info">
+                <b id="infoTitle">Двухскатная крыша</b>
+                <span id="infoDims">8.0 × 10.0 м · H 2.5 м · шаг 1.0 м</span>
+              </div>
+              <div class="view-controls">
+                <button class="view-btn" id="btnViewIso" title="Изометрия"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></button>
+                <button class="view-btn" id="btnViewFront" title="Спереди"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="1"/></svg></button>
+                <button class="view-btn" id="btnViewTop" title="Сверху"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="1"/></svg></button>
+                <button class="view-btn" id="btnAutoRotate" title="Авто-вращение"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></button>
+              </div>
+            </div>
+            <div class="view-bottom">
+              <div class="legend">
+                <span><i style="background:#A0723D"></i>деревянные элементы</span>
+                <span><i style="background:#C9A227"></i>металлозубчатые пластины</span>
+                <span><i style="background:#6B8A60"></i>стены/оси</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="builder-result" id="builderResult">
+          <div class="stat-box"><div class="v" id="rTrusses">10</div><div class="l">ферм</div></div>
+          <div class="stat-box"><div class="v" id="rSpan">8 м</div><div class="l">пролёт</div></div>
+          <div class="stat-box"><div class="v" id="rArea">80 м²</div><div class="l">площадь кровли</div></div>
+          <div class="stat-box"><div class="v" id="rWood">≈ 4.2 м³</div><div class="l">объём древ.</div></div>
+          <div class="stat-box"><div class="v" id="rMzp">≈ 60 шт</div><div class="l">пластин МЗП</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ADVANTAGES ===================== -->
+<section class="section section-wood" id="advantages">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Почему выбирают нас</span>
+      <h2>Инженерная точность в каждом узле</h2>
+      <p class="lead">Мы производим не пиломатериалы, а готовые инженерные решения: деревянные фермы на МЗП, домокомплекты и балки перекрытий повышенной прочности. Каждое изделие — результат работы конструкторов и специализированного ПО.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>Точность и скорость сборки</h3>
+        <p>Элементы изготавливаются в заводских условиях на спецоборудовании. На стройплощадку приезжает готовый «конструктор» с идеально подогнанными деталями, нумерацией узлов и монтажными отверстиями.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></div>
+        <h3>Прочность более 50 лет</h3>
+        <p>Проектирование с запасом. Каждая ферма и балка рассчитывается с учётом снеговых, ветровых и эксплуатационных нагрузок. МЗП и усиленные кронштейны создают жёсткие нерасширяемые соединения.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c2.5 3 4 6.5 4 10s-1.5 7-4 10c-2.5-3-4-6.5-4-10s1.5-7 4-10z"/></svg></div>
+        <h3>Свобода архитектуры</h3>
+        <p>Воплощаем проекты любой сложности — от классических двускатных крыш до многоуровневых конструкций с большими пролётами. Индивидуальный расчёт под ваш архитектурный замысел.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></div>
+        <h3>Гарантия, подкреплённая наукой</h3>
+        <p>Постоянные деловые и научные связи с ведущими строительными вузами Санкт-Петербурга. Технологически совершенный продукт, соответствующий современным стандартам.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3>Экономичность на всех этапах</h3>
+        <p>Точный расчёт исключает перерасход древесины. Сокращение сроков монтажа снижает затраты на труд. Готовый комплект вместо десятков поставок. Отсутствие скрипов и прогибов избавляет от будущих ремонтов.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M3 7l9 5 9-5"/></svg></div>
+        <h3>Полный цикл работ</h3>
+        <p>Проектирование, изготовление и монтаж деревянных конструкций под ключ. Сопровождаем проект от эскиза до готового каркаса на вашем участке.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STATS BAR ===================== -->
+<section class="section stats-bar" style="padding-top:clamp(36px,5vw,56px);padding-bottom:clamp(36px,5vw,56px)">
+  <div class="container">
+    <div class="stats-bar-grid">
+      <div><div class="num">2014<span class="suf">г</span></div><div class="lbl">год основания</div></div>
+      <div><div class="num">24<span class="suf">м</span></div><div class="lbl">максимальный пролёт</div></div>
+      <div><div class="num">50<span class="suf">+</span></div><div class="lbl">лет службы конструкций</div></div>
+      <div><div class="num">1000<span class="suf">+</span></div><div class="lbl">реализованных проектов</div></div>
+      <div><div class="num">0<span class="suf">.1мм</span></div><div class="lbl">допуск на изготовление</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PORTFOLIO PREVIEW ===================== -->
+<section class="section section-wood" id="portfolio">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Портфолио</span>
+      <h2>Наши работы</h2>
+      <p class="lead">Готовые дома, домокомплекты, стропильные конструкции и проектные решения — реализованные проекты КАРКАСКИН. Каждый альбом открывается отдельной страницей.</p>
+    </div>
+    <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+      <a class="album-card" href="portfolio/doma.html">
+        <img src="img/dom-01.jpeg" alt="Домокомплекты каркасных домов">
+        <span class="al-count">14 фото</span>
+        <div class="al-cap"><h3>Домокомплекты и каркасные дома</h3><p>Готовые каркасы от дачных домиков до коттеджей</p></div>
+      </a>
+      <a class="album-card" href="portfolio/kryshi.html">
+        <img src="img/fermy-hero.jpg" alt="Фермы на МЗП">
+        <span class="al-count">14 фото</span>
+        <div class="al-cap"><h3>Крыши и фермы на МЗП</h3><p>Стропильные системы заводского изготовления</p></div>
+      </a>
+      <a class="album-card" href="portfolio/angary.html">
+        <img src="img/angar-01.jpg" alt="Ангары и навесы">
+        <span class="al-count">10 фото</span>
+        <div class="al-cap"><h3>Ангары, манежи и навесы</h3><p>Большие пролёты без промежуточных опор</p></div>
+      </a>
+      <a class="album-card" href="portfolio/proekty.html">
+        <img src="img/proekt-01.jpg" alt="Проекты домов">
+        <span class="al-count">8 фото</span>
+        <div class="al-cap"><h3>Проекты домов и коттеджей</h3><p>Архитектурно-строительное проектирование</p></div>
+      </a>
+    </div>
+    <div class="photogrid" style="margin-top:1.6rem">
+      <a class="photo-card" href="portfolio/kryshi.html" target="_blank"><img src="img/krysha-01.jpg" alt="Стропильные фермы на МЗП"><div class="cap"><small>Фермы на МЗП</small>Монтаж стропильной системы</div></a>
+      <a class="photo-card" href="portfolio/doma.html" target="_blank"><img src="img/dom-09.jpg" alt="Каркасный дом"><div class="cap"><small>Домокомплекты</small>Каркас дома на объекте</div></a>
+      <a class="photo-card" href="portfolio/angary.html" target="_blank"><img src="img/angar-05.jpeg" alt="Ангар на МЗП"><div class="cap"><small>Ангары</small>Каркас ангара пролётом 24 м</div></a>
+      <a class="photo-card" href="img/montazh-01.jpg" target="_blank"><img src="img/montazh-01.jpg" alt="Монтаж конструкций"><div class="cap"><small>Монтаж</small>Сборка конструкций бригадой КАРКАСКИН</div></a>
+    </div>
+    <div style="text-align:center;margin-top:2.4rem">
+      <a href="portfolio.html" class="btn btn-dark">Смотреть всё портфолио</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA BANNER ===================== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="cta-banner">
+      <div>
+        <h2>Давайте построим что-то прочное вместе</h2>
+        <p>Начните с точного расчёта — пришлите габариты здания и получите 3D-модель каркаса и коммерческое предложение.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="#calc" class="btn btn-light">Рассчитать конструкцию</a>
+        <a href="tel:+79219153706" class="btn btn-outline" style="border-color:#fff;color:#fff">Позвонить</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONTACTS / CALC ===================== -->
+<section class="section section-dark" id="contacts">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Контакты</span>
+      <h2>Свяжитесь с нами</h2>
+      <p class="lead">Заполните форму расчёта конструкций, форму расчёта балок или просто напишите нам — ответим в течение рабочего дня.</p>
+    </div>
+    <div class="contact-grid" style="margin-bottom:3rem">
+      <div class="contact-info">
+        <div class="ci-item"><div class="ci-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><h4>Адрес</h4><div class="v">г. Санкт-Петербург,<br>Заповедная ул., д. 62</div></div></div>
+        <div class="ci-item"><div class="ci-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div><h4>Телефон</h4><div class="v"><a href="tel:+79219153706">+7 921 915-37-06</a></div></div></div>
+        <div class="ci-item"><div class="ci-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 4 8 8 8-8"/></svg></div><div><h4>E-mail</h4><div class="v"><a href="mailto:info@karkaskin.ru">info@karkaskin.ru</a></div></div></div>
+        <div class="ci-item"><div class="ci-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div><h4>Время работы</h4><div class="v">пн–пт 9:00–18:00</div></div></div>
+        <div class="ci-item"><div class="ci-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div><h4>Реквизиты</h4><div class="v">ООО «КАРКАСКИН»<br>с 2014 года · Санкт-Петербург</div></div></div>
+        <div class="socials">
+          <a href="https://facebook.com/karkaskin" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7c4.7-.8 8.4-4.9 8.4-9.9z"/></svg></a>
+          <a href="https://instagram.com/karkaskin" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://ru.pinterest.com/karkaskin" aria-label="Pinterest" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 4 5.6 4 8.7c0 1.9.7 3.6 2.3 4.2.3.1.5 0 .5-.3l.2-.8c.1-.3 0-.4-.2-.6-.4-.5-.7-1.1-.7-2 0-2.6 1.9-4.9 5-4.9 2.7 0 4.2 1.7 4.2 3.9 0 2.9-1.3 5.4-3.2 5.4-1 0-1.8-.9-1.6-1.9.3-1.3.8-2.6.8-3.6 0-.8-.4-1.5-1.4-1.5-1.1 0-2 1.2-2 2.7 0 1 .3 1.6.3 1.6l-1.3 5.4c-.4 1.6-.1 3.7 0 3.9 0 .1.2.2.3.1.1-.1 1.5-1.9 2-3.6l.7-2.8c.4.7 1.4 1.3 2.5 1.3 3.3 0 5.5-3 5.5-7 0-3-2.6-5.9-6.9-5.9z"/></svg></a>
+        </div>
+      </div>
+      <div class="form-card" id="calc">
+        <h3>Запрос на расчёт конструкций</h3>
+        <p class="form-sub">Заполните параметры — пришлём 3D-модель и коммерческое предложение. Поля со звёздочкой обязательны.</p>
+        <form id="calcForm" novalidate>
+          <div class="form-row">
+            <div class="ff"><label>Имя <span class="req">*</span></label><input class="finput" name="name" required placeholder="Иван"></div>
+            <div class="ff"><label>Фамилия</label><input class="finput" name="surname" placeholder="Иванов"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>Телефон <span class="req">*</span></label><input class="finput" name="phone" type="tel" required placeholder="+7 (___) ___-__-__"></div>
+            <div class="ff"><label>E-mail <span class="req">*</span></label><input class="finput" name="email" type="email" required placeholder="you@example.com"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>L, мм — пролёт фермы <span class="req">*</span></label><input class="finput" name="L" type="number" required placeholder="8000"></div>
+            <div class="ff"><label>A, мм — длина здания <span class="req">*</span></label><input class="finput" name="A" type="number" required placeholder="10000"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>H, мм — высота фермы <span class="req">*</span></label><input class="finput" name="H" type="number" required placeholder="2500"></div>
+            <div class="ff"><label>B, мм — шаг ферм</label><input class="finput" name="B" type="number" placeholder="1000"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>C, мм — длина свесов</label><input class="finput" name="C" type="number" placeholder="600"></div>
+            <div class="ff"><label>h, мм — толщина утеплителя</label><input class="finput" name="h" type="number" placeholder="200"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>Тип крыши</label>
+              <select class="finput" name="roofType">
+                <option>Двухскатная</option><option>Вальмовая</option><option>Односкатная</option><option>Мансардная</option><option>Другая</option>
+              </select>
+            </div>
+            <div class="ff"><label>Cn — снеговой район / место</label><input class="finput" name="snow" placeholder="III (СПб)"></div>
+          </div>
+          <div class="form-row">
+            <div class="ff"><label>W — ветровой район</label><input class="finput" name="wind" placeholder="I"></div>
+            <div class="ff"><label>Kr — покрытие кровли</label><input class="finput" name="cover" placeholder="Металлочерепица"></div>
+          </div>
+          <div class="ff"><label>Комментарий</label><textarea class="finput" name="comment" placeholder="Дополнительные пожелания, особенности объекта..."></textarea></div>
+          <button type="submit" class="btn btn-primary btn-block">Отправить запрос на расчёт</button>
+          <p class="form-note">Заполняя форму, я даю согласие на обработку <a href="#contacts">персональных данных</a>. *</p>
+          <div class="form-success" id="calcSuccess">✓ Спасибо! Запрос отправлен. Мы свяжемся с вами в течение рабочего дня.</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div style="border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(201,162,39,.2);box-shadow:var(--shadow)">
+      <iframe title="Карта — КАРКАСКИН, Заповедная 62" src="https://yandex.ru/map-widget/v1/?mode=search&text=%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%2C%20%D0%97%D0%B0%D0%BF%D0%BE%D0%B2%D0%B5%D0%B4%D0%BD%D0%B0%D1%8F%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%2C%2062&z=16" width="100%" height="420" frameborder="0" style="display:block;border:0" allow="fullscreen"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="f-about">
+        <div class="logo" style="margin-bottom:1rem"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/><path d="M3 9h18"/></svg></span><span>КАРКАСКИН</span></div>
+        <p>ООО «КАРКАСКИН» — проектирование и производство деревянных конструкций на металлозубчатых пластинах. Фермы, балки, арки, рамы, домокомплекты. С 2014 года, Санкт-Петербург.</p>
+      </div>
+      <div>
+        <h4>Разделы</h4>
+        <a href="#builder">3D-конструктор</a>
+        <a href="proizvodstvo.html">Производство</a>
+        <a href="komplekty.html">Комплекты</a>
+        <a href="uslugi.html">Услуги</a>
+        <a href="katalog.html">Каталог</a>
+      </div>
+      <div>
+        <h4>Компания</h4>
+        <a href="portfolio.html">Портфолио</a>
+        <a href="garantia.html">Гарантия</a>
+        <a href="garantia.html#prices">Цены</a>
+        <a href="kontakty.html">Контакты</a>
+        <a href="kontakty.html#calc">Расчёт</a>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <a href="tel:+79219153706">+7 921 915-37-06</a>
+        <a href="mailto:info@karkaskin.ru">info@karkaskin.ru</a>
+        <a href="kontakty.html">СПб, Заповедная 62</a>
+        <a href="kontakty.html">пн–пт 9:00–18:00</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 КАРКАСКИН. Все права защищены.</div>
+      <div class="links">
+        <a href="garantia.html">Политика конфиденциальности</a>
+        <a href="garantia.html">Согласие на обработку данных</a>
+        <a href="garantia.html#prices">Публичная оферта</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   SHARED RESOURCES
+   ============================================================ */
+const UNIT = new THREE.BoxGeometry(1,1,1);
+const M = {
+  wood:     new THREE.MeshStandardMaterial({color:0xA0723D, roughness:0.82, metalness:0.05}),
+  woodDark: new THREE.MeshStandardMaterial({color:0x6B4220, roughness:0.9,  metalness:0.05}),
+  brass:    new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.32, metalness:0.75, emissive:0x3a2a00, emissiveIntensity:0.28}),
+  ridge:    new THREE.MeshStandardMaterial({color:0xE0B84A, roughness:0.45, metalness:0.5}),
+  wall:     new THREE.MeshStandardMaterial({color:0x6B8A60, transparent:true, opacity:0.13, roughness:0.9, side:THREE.DoubleSide, depthWrite:false}),
+  wallEdge: new THREE.LineBasicMaterial({color:0x9fb593, transparent:true, opacity:0.5}),
+  ground:   new THREE.MeshStandardMaterial({color:0x14110d, roughness:0.96, metalness:0}),
+};
+
+function beam(A,B,t,mat){
+  const dir = new THREE.Vector3().subVectors(B,A);
+  const len = Math.max(0.001, dir.length());
+  const mesh = new THREE.Mesh(UNIT, mat);
+  mesh.scale.set(t, len, t);
+  mesh.position.copy(A).addScaledVector(dir,0.5);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+  return mesh;
+}
+function plate(x,y,z,s){
+  s = s||0.15;
+  const m = new THREE.Mesh(UNIT, M.brass);
+  m.scale.set(s, s, 0.014);
+  m.position.set(x,y,z);
+  return m;
+}
+const lerp2 = (a,b,t)=>({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t});
+const shedY = (x, lo, hi)=>{const t=(x-lo.x)/(hi.x-lo.x); return lo.y+(hi.y-lo.y)*t;};
+
+/* ============================================================
+   TRUSS PROFILE (2D in XY plane)
+   returns {beams:[[A,B,thick],...], joints:[{x,y},...]}
+   ============================================================ */
+function trussProfile(type, L, H, C){
+  const beams=[], joints=[];
+  const halfL=L/2, halfLe=L/2+C;
+  const bl={x:-halfLe,y:0}, br={x:halfLe,y:0};
+  const apex={x:0,y:H};
+  const t=0.09, tw=0.055;
+
+  if(type==='gable' || type==='hip'){
+    beams.push([bl,br,t]);
+    beams.push([bl,apex,t]); beams.push([br,apex,t]);
+    beams.push([{x:0,y:0},apex,tw]);
+    const mRL=lerp2(bl,apex,0.5), mRR=lerp2(br,apex,0.5);
+    const mbL={x:-L/4,y:0}, mbR={x:L/4,y:0};
+    beams.push([mbL,mRL,tw]); beams.push([mbR,mRR,tw]);
+    beams.push([mRL,{x:0,y:H*0.5},tw]); beams.push([mRR,{x:0,y:H*0.5},tw]);
+    joints.push(apex,bl,br,mRL,mRR,{x:0,y:0},mbL,mbR);
+  } else if(type==='shed'){
+    const yLow = H*0.10;
+    const lo={x:-halfLe,y:yLow}, hi={x:halfLe,y:H};
+    // нижний пояс — балка перекрытия
+    beams.push([bl,br,t]);
+    // верхний пояс — скат
+    beams.push([lo,hi,t]);
+    // короткие опорные стойки по краям
+    beams.push([{x:-halfLe,y:0},lo,tw]);
+    beams.push([{x: halfLe,y:0},hi,tw]);
+    // стойки решётки
+    for(let i=1;i<=3;i++){
+      const x=-halfLe+(2*halfLe)*i/4;
+      beams.push([{x,y:0},{x,y:shedY(x,lo,hi)},tw]);
+    }
+    // раскосы
+    beams.push([{x:-halfLe*0.5,y:0},{x:0,y:shedY(0,lo,hi)},tw]);
+    beams.push([{x:0,y:0},{x:halfLe*0.5,y:shedY(halfLe*0.5,lo,hi)},tw]);
+    joints.push(bl,br,lo,hi,{x:0,y:shedY(0,lo,hi)});
+  } else if(type==='mansard'){
+    const bY=H*0.7, bX=L*0.30;
+    const bL={x:-bX,y:bY}, bR={x:bX,y:bY};
+    beams.push([bl,br,t]);
+    beams.push([bl,bL,t]); beams.push([bL,apex,t]);
+    beams.push([br,bR,t]); beams.push([bR,apex,t]);
+    beams.push([{x:-bX,y:0},bL,tw]); beams.push([{x:bX,y:0},bR,tw]);
+    beams.push([{x:0,y:0},apex,tw]);
+    beams.push([{x:-bX*0.5,y:0},bL,tw]); beams.push([{x:bX*0.5,y:0},bR,tw]);
+    joints.push(apex,bl,br,bL,bR,{x:0,y:0});
+  }
+  return {beams,joints};
+}
+
+/* Build one truss as a group at z=0, bottom chord at y=0 */
+function buildTruss(type, L, H, C){
+  const g = new THREE.Group();
+  const prof = trussProfile(type, L, H, C);
+  for(const [a,b,t] of prof.beams){
+    g.add(beam(new THREE.Vector3(a.x,a.y,0), new THREE.Vector3(b.x,b.y,0), t, M.wood));
+  }
+  return {group:g, joints:prof.joints};
+}
+
+/* ============================================================
+   HOUSE BUILDER
+   ============================================================ */
+function buildHouse(st){
+  const L=st.L/1000, A=st.A/1000, H=st.H/1000, B=st.B/1000, C=(st.C||0)/1000, wallH=st.wallH/1000;
+  const root = new THREE.Group();
+  let woodLen=0, plateCount=0;
+  const halfLe = L/2 + C;
+
+  // truss z-positions along length A
+  const zs=[];
+  const n = Math.max(2, Math.round(A/B));
+  for(let i=0;i<n;i++){ zs.push(-A/2 + A*(i/(n-1))); }
+  if(zs[zs.length-1] < A/2 - 0.001) zs.push(A/2);
+
+  /* ---------- HIP (вальмовая) ----------
+     Proper hip roof: a SHORTENED ridge runs along the middle part of A;
+     the end quarters are triangular hip slopes formed by diagonal (hip)
+     rafters from the 4 wall corners up to the ridge ends.
+     Intermediate trusses (between ridge ends) are full gable trusses. */
+  if(st.roof==='hip'){
+    // ridge occupies middle ~60% of length A
+    const ridgeZ0 = -A/2 + A*0.20;
+    const ridgeZ1 =  A/2 - A*0.20;
+    const ridgeY = wallH + H;
+    // place full triangular trusses only between ridge ends
+    const midZs = zs.filter(z=> z>ridgeZ0+0.01 && z<ridgeZ1-0.01);
+    // ensure one truss near each ridge end
+    if(midZs.length===0 || Math.abs(midZs[0]-ridgeZ0)>B){
+      midZs.unshift(ridgeZ0 + Math.min(B*0.5, (ridgeZ1-ridgeZ0)*0.1));
+    }
+    if(midZs.length===0 || Math.abs(midZs[midZs.length-1]-ridgeZ1)>B){
+      midZs.push(ridgeZ1 - Math.min(B*0.5, (ridgeZ1-ridgeZ0)*0.1));
+    }
+    for(const z of midZs){
+      const prof = buildTruss('gable', L, H, C);
+      const clone = prof.group;
+      clone.position.set(0, wallH, z);
+      root.add(clone);
+      if(st.showNodes){
+        for(const j of prof.joints){
+          root.add(plate(j.x, wallH+j.y, z+0.06, 0.14));
+          root.add(plate(j.x, wallH+j.y, z-0.06, 0.14));
+          plateCount += 2;
+        }
+      }
+      for(const [a,b,t] of trussProfile('gable',L,H,C).beams){
+        woodLen += Math.hypot(b.x-a.x, b.y-a.y);
+      }
+    }
+    // shortened ridge beam
+    root.add(beam(new THREE.Vector3(0,ridgeY,ridgeZ0), new THREE.Vector3(0,ridgeY,ridgeZ1), 0.07, M.ridge));
+    woodLen += Math.abs(ridgeZ1-ridgeZ0);
+    // 4 hip (diagonal) rafters: from each wall corner to the nearest ridge end
+    const corners = [
+      {x:-halfLe, z:-A/2, rz:ridgeZ0},
+      {x: halfLe, z:-A/2, rz:ridgeZ0},
+      {x:-halfLe, z: A/2, rz:ridgeZ1},
+      {x: halfLe, z: A/2, rz:ridgeZ1},
+    ];
+    for(const c of corners){
+      root.add(beam(new THREE.Vector3(c.x, wallH, c.z), new THREE.Vector3(0, ridgeY, c.rz), 0.07, M.ridge));
+      woodLen += Math.hypot(c.x, H, c.z-c.rz);
+    }
+    // jack rafters: on the main slopes near each hip end + fan on the end slope
+    for(const side of [-1,1]){
+      const zEnd = side<0 ? -A/2 : A/2;
+      const zRidge = side<0 ? ridgeZ0 : ridgeZ1;
+      const span = Math.abs(zRidge - zEnd);
+      const nj = Math.max(3, Math.round(span/B));
+      // нарожники основных скатов: от края свеса вверх к накосному стропилу
+      for(let i=1;i<nj;i++){
+        const u = i/nj;
+        const zc = zEnd + (zRidge-zEnd)*u;
+        for(const sx of [-1,1]){
+          root.add(beam(
+            new THREE.Vector3(sx*halfLe, wallH, zc),
+            new THREE.Vector3(sx*halfLe*(1-u), wallH + u*H, zc),
+            0.045, M.woodDark));
+          woodLen += Math.hypot(sx*halfLe*u, u*H);
+        }
+      }
+      // веер нарожников на торцевом скате: от торцевого края к концу конька
+      for(let i=1;i<nj;i++){
+        const f=i/nj;
+        const xe = -halfLe + (2*halfLe)*f;
+        root.add(beam(
+          new THREE.Vector3(xe, wallH, zEnd),
+          new THREE.Vector3(0, ridgeY, zRidge),
+          0.04, M.woodDark));
+        woodLen += Math.hypot(xe, H, span);
+      }
+    }
+    // common rafters along the two main slopes (between ridge ends), already in trusses;
+    // add a couple of purlins for stiffness
+    for(const sgn of [-1,1]){
+      for(let k=1;k<=3;k++){
+        const f=k/4;
+        const px = sgn*halfLe*(1-f);
+        const py = H*f;
+        root.add(beam(new THREE.Vector3(px, wallH+py, ridgeZ0), new THREE.Vector3(px, wallH+py, ridgeZ1), 0.05, M.woodDark));
+        woodLen += Math.abs(ridgeZ1-ridgeZ0);
+      }
+    }
+  }
+  /* ---------- SHED (односкатная) ----------
+     Single slope rising across span L. All trusses identical, tilted.
+     Add purlins running along Z on the slope for a complete roof. */
+  else if(st.roof==='shed'){
+    const prof = buildTruss('shed', L, H, C);
+    for(const z of zs){
+      const clone = prof.group.clone();
+      clone.position.set(0, wallH, z);
+      root.add(clone);
+      if(st.showNodes){
+        for(const j of prof.joints){
+          root.add(plate(j.x, wallH+j.y, z+0.06, 0.14));
+          root.add(plate(j.x, wallH+j.y, z-0.06, 0.14));
+          plateCount += 2;
+        }
+      }
+      for(const [a,b,t] of trussProfile('shed',L,H,C).beams){
+        woodLen += Math.hypot(b.x-a.x, b.y-a.y);
+      }
+    }
+    // балки перекрытия — продольные связи по нижнему поясу между фермами
+    for(const xf of [-L/4, 0, L/4]){
+      root.add(beam(new THREE.Vector3(xf, wallH, zs[0]), new THREE.Vector3(xf, wallH, zs[zs.length-1]), 0.06, M.wood));
+      woodLen += Math.abs(zs[zs.length-1]-zs[0]);
+    }
+    // прогоны вдоль ската
+    for(let k=1;k<=4;k++){
+      const f=k/5;
+      const x = -halfLe + (2*halfLe)*f;
+      const y = shedY(x, {x:-halfLe,y:H*0.10}, {x:halfLe,y:H});
+      root.add(beam(new THREE.Vector3(x, wallH+y, zs[0]), new THREE.Vector3(x, wallH+y, zs[zs.length-1]), 0.05, M.woodDark));
+      woodLen += Math.abs(zs[zs.length-1]-zs[0]);
+    }
+    // верхний прогон по высокой стороне
+    root.add(beam(new THREE.Vector3(halfLe, wallH+H, zs[0]), new THREE.Vector3(halfLe, wallH+H, zs[zs.length-1]), 0.06, M.ridge));
+    woodLen += Math.abs(zs[zs.length-1]-zs[0]);
+  }
+  /* ---------- GABLE / MANSARD ---------- */
+  else {
+    const prof = buildTruss(st.roof, L, H, C);
+    for(const z of zs){
+      const clone = prof.group.clone();
+      clone.position.set(0, wallH, z);
+      root.add(clone);
+      if(st.showNodes){
+        for(const j of prof.joints){
+          root.add(plate(j.x, wallH+j.y, z+0.06, 0.14));
+          root.add(plate(j.x, wallH+j.y, z-0.06, 0.14));
+          plateCount += 2;
+        }
+      }
+      for(const [a,b,t] of trussProfile(st.roof,L,H,C).beams){
+        woodLen += Math.hypot(b.x-a.x, b.y-a.y);
+      }
+    }
+    // full ridge beam for gable & mansard
+    root.add(beam(new THREE.Vector3(0, wallH+H, zs[0]), new THREE.Vector3(0, wallH+H, zs[zs.length-1]), 0.07, M.ridge));
+    woodLen += Math.abs(zs[zs.length-1]-zs[0]);
+    // purlins along slopes (gable)
+    if(st.roof==='gable'){
+      for(const sgn of [-1,1]){
+        for(let k=1;k<=3;k++){
+          const f=k/4;
+          const px = sgn*halfLe*(1-f);
+          const py = H*f;
+          root.add(beam(new THREE.Vector3(px, wallH+py, zs[0]), new THREE.Vector3(px, wallH+py, zs[zs.length-1]), 0.05, M.woodDark));
+          woodLen += Math.abs(zs[zs.length-1]-zs[0]);
+        }
+      }
+    }
+  }
+
+  // walls (4 thin panels)
+  if(st.showWalls){
+    const wh = wallH;
+    const wallGeo = (w,h)=>new THREE.PlaneGeometry(w,h);
+    const mkWall=(w,h,pos,rotY)=>{
+      const m=new THREE.Mesh(wallGeo(w,h), M.wall);
+      m.position.copy(pos); if(rotY) m.rotation.y=rotY; root.add(m);
+    };
+    mkWall(L, wh, new THREE.Vector3(0, wh/2, -A/2), 0);
+    mkWall(L, wh, new THREE.Vector3(0, wh/2,  A/2), Math.PI);
+    mkWall(A, wh, new THREE.Vector3(-L/2, wh/2, 0), -Math.PI/2);
+    mkWall(A, wh, new THREE.Vector3( L/2, wh/2, 0),  Math.PI/2);
+  }
+  // floor outline
+  const floorPts=[
+    new THREE.Vector3(-L/2,0,-A/2), new THREE.Vector3(L/2,0,-A/2),
+    new THREE.Vector3(L/2,0,A/2), new THREE.Vector3(-L/2,0,A/2), new THREE.Vector3(-L/2,0,-A/2)
+  ];
+  const floor = new THREE.Line(new THREE.BufferGeometry().setFromPoints(floorPts), M.wallEdge);
+  root.add(floor);
+
+  // stats
+  const slopeLen = st.roof==='shed' ? Math.hypot(L, H) : Math.hypot(L/2, H);
+  const roofArea = st.roof==='shed' ? slopeLen*A
+                 : st.roof==='hip' ? (2*Math.hypot(L/2,H)*(A*0.6) + 2*Math.hypot(L/2,H)*(A*0.2)*0.5*2)
+                 : 2*slopeLen*A;
+  const woodVol = woodLen * 0.09*0.09 + (zs.length* (L+2*C))*0.09*0.09;
+  const mzpCount = plateCount;
+
+  return {group:root, stats:{trusses:zs.length, span:L, area:roofArea, wood:woodVol, mzp:mzpCount, slopeLen}};
+}
+
+/* ============================================================
+   VIEWER FACTORY
+   ============================================================ */
+function makeViewer(canvas, opts){
+  opts = opts||{};
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  scene.background = null;
+  scene.fog = new THREE.Fog(0x15110d, 18, 60);
+
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+  camera.position.set(opts.camX||14, opts.camY||9, opts.camZ||16);
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 4;
+  controls.maxDistance = 60;
+  controls.target.set(opts.tx||0, opts.ty||4, opts.tz||0);
+  if(opts.autoRotate){ controls.autoRotate=true; controls.autoRotateSpeed=0.8; }
+
+  // lights
+  const hemi = new THREE.HemisphereLight(0xfff0d0, 0x2a1f15, 0.75);
+  scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xffe6b8, 1.15);
+  key.position.set(10, 18, 8);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xb8d0ff, 0.35);
+  fill.position.set(-12, 8, -6);
+  scene.add(fill);
+  const rim = new THREE.PointLight(0xe0b84a, 0.6, 40);
+  rim.position.set(0, 14, -10);
+  scene.add(rim);
+
+  // ground disc
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(opts.groundR||26, 64), M.ground);
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = -0.02;
+  scene.add(ground);
+  // subtle grid
+  const grid = new THREE.GridHelper(opts.groundR*2||50, 50, 0x3a2f20, 0x2a2218);
+  grid.material.transparent = true; grid.material.opacity = 0.35;
+  grid.position.y = 0;
+  scene.add(grid);
+
+  function resize(){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if(w===0||h===0) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+
+  let raf;
+  function tick(){
+    raf = requestAnimationFrame(tick);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  return {
+    renderer, scene, camera, controls,
+    setModel(group){ // replaces content
+      if(this._model){ scene.remove(this._model); }
+      this._model = group;
+      scene.add(group);
+    },
+    frame(target, dist){
+      controls.target.copy(target);
+      const d = dist||controls.getDistance();
+      camera.position.set(target.x + d*0.7, target.y + d*0.5, target.z + d*0.7);
+      controls.update();
+    },
+    dispose(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); }
+  };
+}
+
+/* ============================================================
+   HERO VIEWER — example truss, auto-rotating
+   ============================================================ */
+(function initHero(){
+  const canvas = document.getElementById('hero-canvas');
+  if(!canvas) return;
+  const v = makeViewer(canvas, {camX:7, camY:5, camZ:9, tx:0, ty:2.4, tz:0, autoRotate:true, groundR:9});
+  v.controls.minDistance = 4;
+  v.controls.maxDistance = 22;
+  v.controls.autoRotateSpeed = 1.2;
+
+  // build a nice gable truss, scale up
+  const t = buildTruss('gable', 8, 3, 0.6).group;
+  t.scale.setScalar(1.0);
+  t.position.y = 1.2;
+  // add plates to hero truss
+  const joints = trussProfile('gable', 8, 3, 0.6).joints;
+  for(const j of joints){
+    t.add(plate(j.x, j.y, 0.08, 0.18));
+    t.add(plate(j.x, j.y, -0.08, 0.18));
+  }
+  // base disc accent
+  const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 3.5, 64), new THREE.MeshBasicMaterial({color:0xC9A227, transparent:true, opacity:0.5, side:THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.05;
+  v.scene.add(ring);
+
+  v.setModel(t);
+})();
+
+/* ============================================================
+   BUILDER VIEWER — procedural house from inputs
+   ============================================================ */
+const Builder = (function(){
+  const canvas = document.getElementById('builder-canvas');
+  const v = makeViewer(canvas, {camX:14, camY:9, camZ:16, tx:0, ty:3.5, tz:0, groundR:24});
+  v.controls.maxDistance = 70;
+
+  const $ = id=>document.getElementById(id);
+  const roofNames = {gable:'Двухскатная крыша', hip:'Вальмовая крыша', shed:'Односкатная крыша', mansard:'Мансардная крыша'};
+
+  function readState(){
+    const num=(id,dft)=>{const x=parseFloat($(id).value); return isNaN(x)?dft:x;};
+    return {
+      L: clamp(num('bL',8000),3000,24000),
+      A: clamp(num('bA',10000),3000,30000),
+      H: clamp(num('bH',2500),800,6000),
+      B: clamp(num('bStep',1000),500,3000),
+      C: clamp(num('bEave',600),0,2000),
+      wallH: clamp(num('bWallH',3000),2000,6000),
+      roof: currentRoof,
+      showWalls: $('showWalls').checked,
+      showNodes: $('showNodes').checked,
+      showGrid: $('showGrid').checked,
+    };
+  }
+  function clamp(x,lo,hi){return Math.max(lo,Math.min(hi,x));}
+
+  function rebuild(){
+    const st = readState();
+    const res = buildHouse(st);
+    v.setModel(res.group);
+    // update info
+    $('infoTitle').textContent = roofNames[st.roof];
+    $('infoDims').textContent = `${(st.L/1000).toFixed(1)} × ${(st.A/1000).toFixed(1)} м · H ${(st.H/1000).toFixed(2)} м · шаг ${(st.B/1000).toFixed(2)} м`;
+    $('rTrusses').textContent = res.stats.trusses;
+    $('rSpan').textContent = res.stats.span.toFixed(1)+' м';
+    $('rArea').textContent = Math.round(res.stats.area)+' м²';
+    $('rWood').textContent = '≈ '+res.stats.wood.toFixed(2)+' м³';
+    $('rMzp').textContent = '≈ '+res.stats.mzp+' шт';
+    // toggle grid visibility
+    v.scene.children.forEach(c=>{ if(c.isGridHelper) c.visible = st.showGrid; });
+  }
+
+  // wire inputs
+  let debounce;
+  ['bL','bA','bH','bStep','bEave','bWallH'].forEach(id=>{
+    $(id).addEventListener('input', ()=>{ clearTimeout(debounce); debounce=setTimeout(rebuild,120); });
+  });
+  ['showWalls','showNodes','showGrid'].forEach(id=>{
+    $(id).addEventListener('change', rebuild);
+  });
+
+  // roof chips
+  let currentRoof = 'gable';
+  document.querySelectorAll('#roofTypes .roof-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#roofTypes .roof-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      currentRoof = chip.dataset.roof;
+      rebuild();
+    });
+  });
+
+  // view buttons
+  $('btnViewIso').addEventListener('click', ()=>{
+    v.camera.position.set(14,9,16); v.controls.target.set(0,3.5,0); v.controls.update();
+  });
+  $('btnViewFront').addEventListener('click', ()=>{
+    const st=readState();
+    v.camera.position.set(0, st.wallH/1000 + st.H/2000, 22); v.controls.target.set(0, st.wallH/2000 + st.H/3000, 0); v.controls.update();
+  });
+  $('btnViewTop').addEventListener('click', ()=>{
+    v.camera.position.set(0, 26, 0.01); v.controls.target.set(0,0,0); v.controls.update();
+  });
+  $('btnAutoRotate').addEventListener('click', (e)=>{
+    v.controls.autoRotate = !v.controls.autoRotate;
+    e.currentTarget.style.color = v.controls.autoRotate ? '#fff' : '';
+    e.currentTarget.style.background = v.controls.autoRotate ? 'rgba(201,162,39,.3)' : '';
+  });
+
+  $('btnReset').addEventListener('click', ()=>{
+    $('bL').value=8000; $('bA').value=10000; $('bH').value=2500; $('bStep').value=1000; $('bEave').value=600; $('bWallH').value=3000;
+    $('showWalls').checked=true; $('showNodes').checked=true; $('showGrid').checked=false;
+    document.querySelectorAll('#roofTypes .roof-chip').forEach(c=>c.classList.toggle('active', c.dataset.roof==='gable'));
+    currentRoof='gable'; rebuild(); toast('Параметры сброшены');
+  });
+  $('btnRequest').addEventListener('click', ()=>{
+    document.getElementById('calc').scrollIntoView({behavior:'smooth'});
+    // prefill calc form with builder values
+    const $=id=>document.getElementById(id);
+    const f=document.getElementById('calcForm');
+    f.L.value=$('bL').value; f.A.value=$('bA').value; f.H.value=$('bH').value; f.B.value=$('bStep').value; f.C.value=$('bEave').value;
+    const roofMap={gable:'Двухскатная',hip:'Вальмовая',shed:'Односкатная',mansard:'Мансардная'};
+    f.roofType.value=roofMap[currentRoof];
+    toast('Параметры переданы в форму расчёта');
+  });
+
+  rebuild();
+  return {rebuild};
+})();
+window.__builder = Builder;
+
+/* ============================================================
+   UI: header, mobile nav, tabs, faq, forms, toast
+   ============================================================ */
+const $=id=>document.getElementById(id);
+// header scroll
+window.addEventListener('scroll', ()=>{
+  $('header').classList.toggle('scrolled', window.scrollY>20);
+});
+// burger
+$('burger').addEventListener('click', ()=>{
+  const open = $('burger').classList.toggle('open');
+  $('mobileNav').classList.toggle('open', open);
+  $('burger').setAttribute('aria-expanded', open);
+});
+document.querySelectorAll('#mobileNav a').forEach(a=>{
+  a.addEventListener('click', ()=>{ $('burger').classList.remove('open'); $('mobileNav').classList.remove('open'); $('burger').setAttribute('aria-expanded','false'); });
+});
+// tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-panels').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+  });
+});
+// faq
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click', ()=>{ q.parentElement.classList.toggle('open'); });
+});
+// toast
+let toastTimer;
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+window.toast = toast;
+// calc form
+$('calcForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const f=e.target;
+  let ok=true;
+  ['name','phone','email','L','A','H'].forEach(n=>{
+    const el=f[n]; if(el && el.required && !el.value.trim()){ ok=false; el.style.borderColor='#B23A2E'; }
+    else if(el){ el.style.borderColor=''; }
+  });
+  if(ok){ $('calcSuccess').classList.add('show'); f.reset(); toast('Запрос отправлен! Мы свяжемся с вами.'); }
+  else { toast('Заполните обязательные поля'); }
+});
+// counter animation for stats
+const counters = document.querySelectorAll('.stats-bar .num');
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      const el=en.target;
+      const txt=el.textContent;
+      const m=txt.match(/(\d+)/);
+      if(m && !el.dataset.done){
+        el.dataset.done='1';
+        const target=parseInt(m[1]);
+        const suf=txt.replace(m[1],'');
+        let cur=0; const step=Math.max(1,Math.round(target/40));
+        const tick=()=>{ cur+=step; if(cur>=target){ el.innerHTML=target+'<span class="suf">'+suf+'</span>'; } else { el.innerHTML=cur+'<span class="suf">'+suf+'</span>'; requestAnimationFrame(tick); } };
+        tick();
+      }
+      io.unobserve(el);
+    }
+  });
+},{threshold:0.4});
+counters.forEach(c=>io.observe(c));
+</script>
+
+
+</body>
+</html>
